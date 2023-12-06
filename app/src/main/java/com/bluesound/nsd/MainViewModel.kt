@@ -24,4 +24,9 @@ class MainViewModel : ViewModel() {
         _screenStateFlow.value = Result.Success(_services.toList())
     }
 
+    fun clear() {
+        _services.clear()
+        _screenStateFlow.value = Result.Loading
+    }
+
 }

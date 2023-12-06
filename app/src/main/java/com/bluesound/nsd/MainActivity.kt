@@ -12,16 +12,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,7 +27,6 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.HandlerCompat.postDelayed
@@ -86,22 +83,29 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val screenState by mainViewModel.screenStateFlow.collectAsState(Result.Loading)
+            val scrollState = rememberScrollState()
 
             NSDTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     when (screenState) {
                         is Result.Success -> {
                             val services = (screenState as Result.Success).services
                             Column(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(scrollState),
                             ) {
                                 services.forEach {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(text = it.serviceName.substringBefore("-"), style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+                                        Text(
+                                            text = it.serviceName.substringBefore("-"),
+                                            style = TextStyle(
+                                                fontSize = 20.sp, fontWeight = FontWeight.Bold
+                                            )
+                                        )
                                         Text(text = "Service type: ${it.serviceType}")
                                         Text(text = "Port: ${it.port}")
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && it.hostAddresses.isNotEmpty()) {
@@ -109,7 +113,7 @@ class MainActivity : ComponentActivity() {
                                                 Text(text = "Host address: ${it.hostAddress}")
                                             }
                                         } else {
-                                                Text(text = "Host address: ${it.host}")
+                                            Text(text = "Host address: ${it.host}")
                                         }
                                         it.attributes.entries.forEach {
                                             Text(text = "Attribute: ${it.key} = ${it.value}")
@@ -123,13 +127,27 @@ class MainActivity : ComponentActivity() {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     CircularProgressIndicator()
-                                    Text(modifier = Modifier.padding(16.dp), text = "Loading...", style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+                                    Text(
+                                        modifier = Modifier.padding(16.dp),
+                                        text = "Loading...",
+                                        style = TextStyle(
+                                            fontSize = 20.sp, fontWeight = FontWeight.Bold
+                                        )
+                                    )
                                 }
                             }
                         }
 
                         is Result.Error -> {
-                            Text(modifier = Modifier.padding(16.dp), text = "Error...", style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error))
+                            Text(
+                                modifier = Modifier.padding(16.dp),
+                                text = "Error...",
+                                style = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            )
                         }
                     }
                 }
@@ -149,6 +167,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        mainViewModel.clear()
         multicastLock.release() // release after browsing
         nsdManager.stopServiceDiscovery(discoveryListener)
         super.onStop()
