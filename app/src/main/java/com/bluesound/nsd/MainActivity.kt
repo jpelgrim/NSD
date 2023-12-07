@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                     .verticalScroll(scrollState),
                             ) {
                                 services.firstOrNull()?.let {
-                                   Text(
+                                    Text(
                                         modifier = Modifier.padding(16.dp),
                                         text = "${it.serviceType} Services",
                                         style = TextStyle(
