@@ -9,19 +9,20 @@ class MainViewModel : ViewModel() {
 
     private var _screenStateFlow: MutableStateFlow<Result> = MutableStateFlow(Result.Loading)
 
-    private val _services: MutableSet<NsdServiceInfo> = mutableSetOf()
+    private val _services: MutableList<NsdServiceInfo> = mutableListOf()
 
     val screenStateFlow: StateFlow<Result>
         get() = _screenStateFlow
 
-    fun addService(serviceInfo: NsdServiceInfo) {
-        _services.add(serviceInfo)
-        _screenStateFlow.value = Result.Success(_services.toList())
+    fun addService(nsdServiceInfo: NsdServiceInfo) {
+        _services.removeIf { it.serviceName == nsdServiceInfo.serviceName }
+        _services.add(nsdServiceInfo)
+        _screenStateFlow.value = Result.Success(_services.sortedBy { it.serviceName }.toList())
     }
 
-    fun removeService(service: NsdServiceInfo) {
-        _services.remove(service)
-        _screenStateFlow.value = Result.Success(_services.toList())
+    fun removeService(nsdServiceInfo: NsdServiceInfo) {
+        _services.removeIf { it.serviceName == nsdServiceInfo.serviceName }
+        _screenStateFlow.value = Result.Success(_services.sortedBy { it.serviceName }.toList())
     }
 
     fun clear() {

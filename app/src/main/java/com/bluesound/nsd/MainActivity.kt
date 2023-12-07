@@ -1,6 +1,7 @@
 package com.bluesound.nsd
 
 import android.net.nsd.NsdManager
+import android.net.nsd.NsdManager.ServiceInfoCallback
 import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -53,17 +54,43 @@ class MainActivity : ComponentActivity() {
         override fun onServiceFound(service: NsdServiceInfo) {
             // A service was found! Do something with it.
             Log.d(TAG, "Service discovery success $service")
-            nsdManager.resolveService(service, object : NsdManager.ResolveListener {
-                override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-                    // Called when the resolve fails. Use the error code for debugging purposes.
-                    Log.e(TAG, "Resolve failed: $errorCode")
-                }
 
-                override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                    Log.e(TAG, "Resolve Succeeded: $serviceInfo")
-                    mainViewModel.addService(serviceInfo)
-                }
-            })
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                nsdManager.registerServiceInfoCallback(service,
+                    Runnable::run,
+                    object : ServiceInfoCallback {
+                        override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
+                            Log.e(TAG, "Service registration failed: $errorCode")
+                        }
+
+                        override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
+                            Log.i(TAG, "Service updated: $serviceInfo")
+                            mainViewModel.addService(serviceInfo)
+                        }
+
+                        override fun onServiceLost() {
+                            Log.i(TAG, "Service lost: $service")
+                            mainViewModel.removeService(service)
+                        }
+
+                        override fun onServiceInfoCallbackUnregistered() {
+                            Log.i(TAG, "Service info callback unregistered")
+                        }
+
+                    })
+            } else {
+                nsdManager.resolveService(service, object : NsdManager.ResolveListener {
+                    override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                        // Called when the resolve fails. Use the error code for debugging purposes.
+                        Log.e(TAG, "Resolve failed: $errorCode")
+                    }
+
+                    override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+                        Log.e(TAG, "Resolve Succeeded: $serviceInfo")
+                        mainViewModel.addService(serviceInfo)
+                    }
+                })
+            }
         }
 
         override fun onServiceLost(service: NsdServiceInfo) {
