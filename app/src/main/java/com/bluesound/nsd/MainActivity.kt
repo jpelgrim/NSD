@@ -108,25 +108,29 @@ class MainActivity : ComponentActivity() {
                                     .fillMaxSize()
                                     .verticalScroll(scrollState),
                             ) {
+                                services.firstOrNull()?.let {
+                                   Text(
+                                        modifier = Modifier.padding(16.dp),
+                                        text = "${it.serviceType} Services",
+                                        style = TextStyle(
+                                            fontSize = 24.sp, fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
                                 services.forEach {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                                    Column(modifier = Modifier.padding(8.dp)) {
                                         Text(
                                             text = it.serviceName.substringBefore("-"),
                                             style = TextStyle(
                                                 fontSize = 20.sp, fontWeight = FontWeight.Bold
                                             )
                                         )
-                                        Text(text = "Service type: ${it.serviceType}")
-                                        Text(text = "Port: ${it.port}")
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && it.hostAddresses.isNotEmpty()) {
                                             it.hostAddresses.forEach {
                                                 Text(text = "Host address: ${it.hostAddress}")
                                             }
                                         } else {
                                             Text(text = "Host address: ${it.host}")
-                                        }
-                                        it.attributes.entries.forEach {
-                                            Text(text = "Attribute: ${it.key} = ${it.value.toString(Charsets.UTF_8)}")
                                         }
                                     }
                                 }
