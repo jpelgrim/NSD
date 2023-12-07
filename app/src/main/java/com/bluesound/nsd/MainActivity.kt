@@ -53,7 +53,17 @@ class MainActivity : ComponentActivity() {
         override fun onServiceFound(service: NsdServiceInfo) {
             // A service was found! Do something with it.
             Log.d(TAG, "Service discovery success $service")
-            mainViewModel.addService(service)
+            nsdManager.resolveService(service, object : NsdManager.ResolveListener {
+                override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+                    // Called when the resolve fails. Use the error code for debugging purposes.
+                    Log.e(TAG, "Resolve failed: $errorCode")
+                }
+
+                override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+                    Log.e(TAG, "Resolve Succeeded: $serviceInfo")
+                    mainViewModel.addService(serviceInfo)
+                }
+            })
         }
 
         override fun onServiceLost(service: NsdServiceInfo) {
@@ -116,7 +126,7 @@ class MainActivity : ComponentActivity() {
                                             Text(text = "Host address: ${it.host}")
                                         }
                                         it.attributes.entries.forEach {
-                                            Text(text = "Attribute: ${it.key} = ${it.value}")
+                                            Text(text = "Attribute: ${it.key} = ${it.value.toString(Charsets.UTF_8)}")
                                         }
                                     }
                                 }
